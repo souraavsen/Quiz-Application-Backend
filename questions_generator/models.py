@@ -1,5 +1,7 @@
 from django.db import models
-from datetime import datetime
+from django.db.models.deletion import CASCADE
+from django.contrib.auth.models import User
+from django.db.models.fields import FloatField
 from django.utils.translation import gettext_lazy as translate
 
 class Quizes(models.Model):
@@ -8,6 +10,7 @@ class Quizes(models.Model):
     subject = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     total_time = models.FloatField(max_length=6)
+    total_marks = FloatField(default=15, null= False)
     start = models.DateTimeField()
     end = models.DateTimeField()
     is_active = models.BooleanField(default=False)
@@ -53,3 +56,14 @@ class Options(models.Model):
 
     def __str__(self):
         return self.option_title
+
+
+class Result(models.Model):
+    quiz_id = models.ForeignKey(Quizes, related_name="result", on_delete=CASCADE)
+    participant = models.CharField(max_length=300)
+    time_taken = models.FloatField(default=0)
+    total_number = models.FloatField(default=0)
+    feedback = models.CharField(max_length=300, blank=True)
+
+    def __str__(self):
+        return self.participant

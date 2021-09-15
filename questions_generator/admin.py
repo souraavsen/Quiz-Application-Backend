@@ -44,3 +44,5 @@ class OptionsAdmin(admin.ModelAdmin):
         'option_title', 
         'is_right', 
         ]
+
+admin.site.register(models.Result)

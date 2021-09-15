@@ -1,12 +1,11 @@
-# from typing import ClassVar
-# from rest_framework import generics, serializers
 from rest_framework.response import Response
-from .models import Options, Quizes, Questions
-from .serializers import AllQuizesSerializer, QuestionAndOptionSerializer, QuizInfoSerializers,QuestionSerializer,AnswerSerializer
+from .models import Options, Quizes, Questions, Result
+from .serializers import AllQuizesSerializer, QuestionAndOptionSerializer, QuizInfoSerializers,QuestionSerializer,AnswerSerializer,ResultSerializer
 from rest_framework.views import APIView
 from rest_framework import status
 import time
-from django.contrib.auth.models import User
+
+from questions_generator import serializers
 
 
 def random_name():
@@ -23,9 +22,13 @@ class QuizesList(APIView):
         return Response([], status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, format=None):
-        print(request.data)
+        
         if request.data['access_password'] == "":
             request.data['access_password'] = random_name()
+
+        # if request.data['access_password'] == "None":
+        #     request.data['access_password'] = ""
+
         serializer = AllQuizesSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -48,6 +51,35 @@ http://127.0.0.1:8000/quiz/dashboard/
 }
 """
 
+class QuizOpertion(APIView):
+    def get(self,request,pk):
+        searched_quiz = Quizes.objects.filter(id=pk)
+        if searched_quiz:
+            serializer = AllQuizesSerializer(searched_quiz, many=True)
+            return Response(serializer.data)
+        return Response([], status=status.HTTP_404_NOT_FOUND)
+
+    def put(self,request,pk, formate=None):
+        searched_quiz = Quizes.objects.get(id=pk)
+
+        # if request.data['access_password'] == "None":
+        #     request.data['access_password'] = ""
+
+        if request.data['access_password'] == "":
+            request.data['access_password'] = random_name()
+
+        serializer = AllQuizesSerializer(searched_quiz,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        quiz = Quizes.objects.get(id=pk)
+        quiz.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class UpCommingQuiz(APIView):
     def get(self, request):
         allquizes = Quizes.objects.filter(is_active=False)
@@ -62,6 +94,24 @@ class QuizQuestion(APIView):
     def get(self, request, search):
         data = []
         quiz = Questions.objects.filter(quiz__id=search)
+        
+        if quiz:
+            serializer = QuestionAndOptionSerializer(quiz, many=True)
+            quiz_details = QuizInfoSerializers(quiz, many=True)
+            data.append(quiz_details.data[0])
+            data.append(serializer.data)
+            if len(quiz_details.data) == 0 and len(serializer.data) == 0:
+                data = []
+            return Response(data)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class QuickQuizAccess(APIView):
+
+    def get(self, request, code, formate=None):
+        data = []
+        id = Quizes.objects.get(access_password=code)
+        quiz = Questions.objects.filter(quiz__id = id.id)
         
         if quiz:
             serializer = QuestionAndOptionSerializer(quiz, many=True)
@@ -91,7 +141,7 @@ class QuestionSection(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 """
-http://127.0.0.1:8000/quiz/create_questions/3/
+http://127.0.0.1:8000/quiz/add_questions/3/
 
 {
 "question_type": 2,
@@ -116,8 +166,8 @@ class QuestionOperation(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
-        snippet = Questions.objects.get(id=pk)
-        snippet.delete()
+        question = Questions.objects.get(id=pk)
+        question.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -166,10 +216,35 @@ class AnswerOperation(APIView):
 # }
 
     def delete(self, request, pk, format=None):
-        snippet = Options.objects.get(id=pk)
-        snippet.delete()
+        option = Options.objects.get(id=pk)
+        option.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 # http://127.0.0.1:8000/quiz/answers_operations/34/
 # DELETE Button
+
+
+class ResultView(APIView):
+    def get(self, request, pk, formate=None):
+        # quiz_obj = Quizes.objects.get(id=pk)
+        # print(quiz_obj.total_time)
+        # print(quiz_obj.total_marks)
+
+        all_results = Result.objects.filter(quiz_id=pk).order_by('-total_number')
+        serializer =  ResultSerializer(all_results, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request, pk, format=None):
+        res = Result.objects.filter(quiz_id = pk, participant = request.data["participant"])
+        if res:
+            res.delete()
+        
+        request.data["participant"] = request.data["participant"]
+        request.data["quiz_id"] = pk
+
+        serializer = ResultSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
