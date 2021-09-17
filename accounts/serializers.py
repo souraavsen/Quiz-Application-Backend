@@ -6,9 +6,10 @@ class UserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(allow_blank=False, max_length=300)
     last_name = serializers.CharField(max_length=300)
     email = serializers.EmailField(allow_blank=False, max_length=300)
+    image = serializers.ImageField(max_length=None, allow_empty_file=False)
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'first_name', 'last_name')
+        fields = ('username', 'email', "image", 'password', 'first_name', 'last_name')
 
     def validate(self,attrs):
         email = attrs.get('email', '')
@@ -20,3 +21,12 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
+        
+
+class UserOperationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password', 'first_name', 'last_name')
+        extra_kwargs = {'email': {'required': False}, 'username':{'required':False}}
+
+

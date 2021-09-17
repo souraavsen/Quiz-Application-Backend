@@ -5,8 +5,6 @@ from rest_framework.views import APIView
 from rest_framework import status
 import time
 
-from questions_generator import serializers
-
 
 def random_name():
     secondsSinceEpoch = time.time()
@@ -25,9 +23,6 @@ class QuizesList(APIView):
         
         if request.data['access_password'] == "":
             request.data['access_password'] = random_name()
-
-        # if request.data['access_password'] == "None":
-        #     request.data['access_password'] = ""
 
         serializer = AllQuizesSerializer(data=request.data)
         if serializer.is_valid():
@@ -61,9 +56,6 @@ class QuizOpertion(APIView):
 
     def put(self,request,pk, formate=None):
         searched_quiz = Quizes.objects.get(id=pk)
-
-        # if request.data['access_password'] == "None":
-        #     request.data['access_password'] = ""
 
         if request.data['access_password'] == "":
             request.data['access_password'] = random_name()
@@ -226,9 +218,6 @@ class AnswerOperation(APIView):
 
 class ResultView(APIView):
     def get(self, request, pk, formate=None):
-        # quiz_obj = Quizes.objects.get(id=pk)
-        # print(quiz_obj.total_time)
-        # print(quiz_obj.total_marks)
 
         all_results = Result.objects.filter(quiz_id=pk).order_by('-total_number')
         serializer =  ResultSerializer(all_results, many=True)
