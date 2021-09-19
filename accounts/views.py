@@ -1,4 +1,3 @@
-from re import S
 from questions_generator import serializers
 from django.shortcuts import render
 from rest_framework.views import APIView

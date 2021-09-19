@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from .models import Options, Quizes, Questions, Result
-from .serializers import AllQuizesSerializer, QuestionAndOptionSerializer, QuizInfoSerializers,QuestionSerializer,AnswerSerializer,ResultSerializer
+from .serializers import AllQuizesSerializer, QuestionAndOptionSerializer, QuizInfoSerializers, QuestionSerializer, AnswerSerializer, ResultSerializer
 from rest_framework.views import APIView
 from rest_framework import status
 import time
@@ -11,6 +11,7 @@ def random_name():
     timeObj = time.localtime(secondsSinceEpoch)
     return("%d%d%d%d%d%d" % (timeObj.tm_mday, timeObj.tm_mon, timeObj.tm_year, timeObj.tm_hour, timeObj.tm_min, timeObj.tm_sec))
 
+
 class QuizesList(APIView):
     def get(self, request):
         allquizes = Quizes.objects.filter(is_active=True)
@@ -20,7 +21,7 @@ class QuizesList(APIView):
         return Response([], status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, format=None):
-        
+
         if request.data['access_password'] == "":
             request.data['access_password'] = random_name()
 
@@ -29,6 +30,7 @@ class QuizesList(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 """ 
 http://127.0.0.1:8000/quiz/dashboard/
@@ -46,21 +48,23 @@ http://127.0.0.1:8000/quiz/dashboard/
 }
 """
 
+
 class QuizOpertion(APIView):
-    def get(self,request,pk):
+
+    def get(self, request, pk):
         searched_quiz = Quizes.objects.filter(id=pk)
         if searched_quiz:
             serializer = AllQuizesSerializer(searched_quiz, many=True)
             return Response(serializer.data)
         return Response([], status=status.HTTP_404_NOT_FOUND)
 
-    def put(self,request,pk, formate=None):
+    def put(self, request, pk, formate=None):
         searched_quiz = Quizes.objects.get(id=pk)
 
         if request.data['access_password'] == "":
             request.data['access_password'] = random_name()
 
-        serializer = AllQuizesSerializer(searched_quiz,data=request.data)
+        serializer = AllQuizesSerializer(searched_quiz, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -73,6 +77,7 @@ class QuizOpertion(APIView):
 
 
 class UpCommingQuiz(APIView):
+
     def get(self, request):
         allquizes = Quizes.objects.filter(is_active=False)
         if allquizes:
@@ -86,7 +91,7 @@ class QuizQuestion(APIView):
     def get(self, request, search):
         data = []
         quiz = Questions.objects.filter(quiz__id=search)
-        
+
         if quiz:
             serializer = QuestionAndOptionSerializer(quiz, many=True)
             quiz_details = QuizInfoSerializers(quiz, many=True)
@@ -103,8 +108,8 @@ class QuickQuizAccess(APIView):
     def get(self, request, code, formate=None):
         data = []
         id = Quizes.objects.get(access_password=code)
-        quiz = Questions.objects.filter(quiz__id = id.id)
-        
+        quiz = Questions.objects.filter(quiz__id=id.id)
+
         if quiz:
             serializer = QuestionAndOptionSerializer(quiz, many=True)
             quiz_details = QuizInfoSerializers(quiz, many=True)
@@ -116,22 +121,23 @@ class QuickQuizAccess(APIView):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-
 class QuestionSection(APIView):
 
-    def get(self, request,pk):
+    def get(self, request, pk):
         # quiz_item = Questions.objects.filter(id=pk)
         questions = Questions.objects.filter(quiz=pk)
         serializer = QuestionAndOptionSerializer(questions, many=True)
         return Response(serializer.data)
-    
+
     def post(self, request, pk, format=None):
-        request.data["quiz"]= pk
+        request.data["quiz"] = pk
         serializer = QuestionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 """
 http://127.0.0.1:8000/quiz/add_questions/3/
 
@@ -142,10 +148,11 @@ http://127.0.0.1:8000/quiz/add_questions/3/
 } 
 """
 
+
 class QuestionOperation(APIView):
 
     def get(self, request, pk, format=None):
-        answers =  Questions.objects.filter(id=pk)
+        answers = Questions.objects.filter(id=pk)
         serializer = QuestionAndOptionSerializer(answers, many=True)
         return Response(serializer.data)
 
@@ -164,8 +171,9 @@ class QuestionOperation(APIView):
 
 
 class AnswerSection(APIView):
+
     def get(self, request, pk, format=None):
-        answers =  Options.objects.filter(question=pk)
+        answers = Options.objects.filter(question=pk)
         serializer = AnswerSerializer(answers, many=True)
         return Response(serializer.data)
 
@@ -176,6 +184,8 @@ class AnswerSection(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 """ 
 http://127.0.0.1:8000/quiz/add_answers/8/
 
@@ -185,10 +195,11 @@ http://127.0.0.1:8000/quiz/add_answers/8/
 }
 """
 
+
 class AnswerOperation(APIView):
 
     def get(self, request, pk, format=None):
-        answers =  Options.objects.filter(id=pk)
+        answers = Options.objects.filter(id=pk)
         serializer = AnswerSerializer(answers, many=True)
         return Response(serializer.data)
 
@@ -219,15 +230,17 @@ class AnswerOperation(APIView):
 class ResultView(APIView):
     def get(self, request, pk, formate=None):
 
-        all_results = Result.objects.filter(quiz_id=pk).order_by('-total_number')
-        serializer =  ResultSerializer(all_results, many=True)
+        all_results = Result.objects.filter(
+            quiz_id=pk).order_by('-total_number')
+        serializer = ResultSerializer(all_results, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     def post(self, request, pk, format=None):
-        res = Result.objects.filter(quiz_id = pk, participant = request.data["participant"])
+        res = Result.objects.filter(
+            quiz_id=pk, participant=request.data["participant"])
         if res:
             res.delete()
-        
+
         request.data["participant"] = request.data["participant"]
         request.data["quiz_id"] = pk
 
@@ -236,4 +249,3 @@ class ResultView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-

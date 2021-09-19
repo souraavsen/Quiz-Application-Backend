@@ -4,9 +4,9 @@ from rest_framework.authtoken.views import obtain_auth_token
 
 
 urlpatterns = [
-    path('login/', obtain_auth_token, name='login'),
-    path('registration/', Reistration.as_view(), name="registration"),
-    path('user_operation/<str:username>/', UserOperation.as_view(),),
+    path('login/', obtain_auth_token),
+    path('registration/', Reistration.as_view()),
+    path('user_operation/<str:username>/', UserOperation.as_view()),
 ]
 
 
