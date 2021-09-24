@@ -4,6 +4,7 @@ from .serializers import AllQuizesSerializer, QuestionAndOptionSerializer, QuizI
 from rest_framework.views import APIView
 from rest_framework import status
 import time
+from rest_framework.permissions import IsAuthenticated
 
 
 def random_name():
@@ -13,6 +14,8 @@ def random_name():
 
 
 class QuizesList(APIView):
+    # permission_classes = [IsAuthenticated]
+
     def get(self, request):
         allquizes = Quizes.objects.filter(is_active=True)
         if allquizes:
@@ -21,7 +24,7 @@ class QuizesList(APIView):
         return Response([], status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, format=None):
-
+        
         if request.data['access_password'] == "":
             request.data['access_password'] = random_name()
 
@@ -48,8 +51,19 @@ http://127.0.0.1:8000/quiz/dashboard/
 }
 """
 
+class UpCommingQuiz(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        allquizes = Quizes.objects.filter(is_active=False)
+        if allquizes:
+            serializer = AllQuizesSerializer(allquizes, many=True)
+            return Response(serializer.data)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
 
 class QuizOpertion(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         searched_quiz = Quizes.objects.filter(id=pk)
@@ -74,19 +88,23 @@ class QuizOpertion(APIView):
         quiz = Quizes.objects.get(id=pk)
         quiz.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class UpCommingQuiz(APIView):
-
-    def get(self, request):
-        allquizes = Quizes.objects.filter(is_active=False)
-        if allquizes:
-            serializer = AllQuizesSerializer(allquizes, many=True)
-            return Response(serializer.data)
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
+"""
+{
+    "organization": "Daffodil International University",
+    "exam_title": "Semi Mid Examination",
+    "subject": "Python",
+    "description": "",
+    "total_time": 2.0,
+    "total_marks": 15.0,
+    "start": "2021-09-12T12:00:00Z",
+    "end": "2021-09-11T12:00:00Z",
+    "is_active": true,
+    "access_password": "ssg12345"
+}
+"""
 
 class QuizQuestion(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, search):
         data = []
@@ -104,6 +122,7 @@ class QuizQuestion(APIView):
 
 
 class QuickQuizAccess(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, code, formate=None):
         data = []
@@ -122,6 +141,7 @@ class QuickQuizAccess(APIView):
 
 
 class QuestionSection(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         # quiz_item = Questions.objects.filter(id=pk)
@@ -150,6 +170,7 @@ http://127.0.0.1:8000/quiz/add_questions/3/
 
 
 class QuestionOperation(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk, format=None):
         answers = Questions.objects.filter(id=pk)
@@ -171,6 +192,7 @@ class QuestionOperation(APIView):
 
 
 class AnswerSection(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk, format=None):
         answers = Options.objects.filter(question=pk)
@@ -197,6 +219,7 @@ http://127.0.0.1:8000/quiz/add_answers/8/
 
 
 class AnswerOperation(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk, format=None):
         answers = Options.objects.filter(id=pk)
@@ -228,6 +251,8 @@ class AnswerOperation(APIView):
 
 
 class ResultView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, pk, formate=None):
 
         all_results = Result.objects.filter(

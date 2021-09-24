@@ -1,5 +1,3 @@
-from questions_generator import serializers
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -7,7 +5,7 @@ from .serializers import UserSerializer, UserOperationSerializer
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
-
+from rest_framework.permissions import IsAuthenticated
 
 class Reistration(APIView):
     def post(self, request):
@@ -22,16 +20,20 @@ class Reistration(APIView):
             data['token']=token
             return Response(data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-# For Test:
-# {
-# "first_name": "easrfan",
-# "last_name":"A",
-# "username":"aaa",
-# "password": "123456789",
-# "email": "asadrfan@example.com"
-# }
+""" 
+For Test:
+{
+"first_name": "easrfan",
+"last_name":"A",
+"username":"aaa",
+"password": "123456789",
+"email": "asadrfan@example.com"
+} 
+
+"""
 
 class UserOperation(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, username, format=None):
 
@@ -60,10 +62,12 @@ class UserOperation(APIView):
         current_user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-# {
-#     "username": "rahul",
-#     "email": "rahul@example.com",
-#     "password": "ssg12345",
-#     "first_name": "Rahul Sen",
-#     "last_name": "Gupta"
-# }
+""" 
+{
+    "username": "rahul",
+    "email": "rahul@example.com",
+    "password": "ssg12345",
+    "first_name": "Rahul Sen",
+    "last_name": "Gupta"
+} 
+"""

@@ -6,10 +6,10 @@ class UserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(allow_blank=False, max_length=300)
     last_name = serializers.CharField(max_length=300)
     email = serializers.EmailField(allow_blank=False, max_length=300)
-    image = serializers.ImageField(max_length=None, allow_empty_file=False)
+    # image = serializers.ImageField(max_length=None, allow_empty_file=False) "image",
     class Meta:
         model = User
-        fields = ('username', 'email', "image", 'password', 'first_name', 'last_name')
+        fields = ('username', 'email', 'password', 'first_name', 'last_name')
 
     def validate(self,attrs):
         email = attrs.get('email', '')
