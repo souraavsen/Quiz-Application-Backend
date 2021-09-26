@@ -1,4 +1,4 @@
 # Quiz-Application-Backend
-• Account
-• Participate Quiz
-• Create Quiz
+- Account
+- Participate Quiz
+- Create Quiz
